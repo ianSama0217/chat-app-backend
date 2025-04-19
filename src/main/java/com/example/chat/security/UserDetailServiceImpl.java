@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,11 +32,23 @@ public class UserDetailServiceImpl implements UserDetailsService {
 		String userEmail = user.getEmail();
 		String userPassword = user.getPassword();
 		// 權限
-		List<GrantedAuthority> authorities = new ArrayList<>();
+		List<String> roleList = userDao.findUserRoleList(user.getId());
+		
+		List<GrantedAuthority> authorities = convertToAuthorities(roleList);
 		
 		// 轉換成 spring security 指定的 User 格式
 		return new org.springframework.security.core.userdetails.User(userEmail, userPassword, authorities);
 
+	}
+	
+	private List<GrantedAuthority> convertToAuthorities(List<String> roleList){
+		List<GrantedAuthority> authorities = new ArrayList<>();
+		
+		for(String role : roleList) {
+			authorities.add(new SimpleGrantedAuthority(role));
+		}
+		
+		return authorities;
 	}
 
 }
